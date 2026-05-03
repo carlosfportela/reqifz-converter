@@ -140,6 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         currentFiles.forEach(file => formData.append('files', file));
+        
+        const algorithmSelect = document.getElementById('algorithm-select');
+        if (algorithmSelect) {
+            formData.append('algorithm', algorithmSelect.value);
+        }
 
         try {
             const response = await fetch('/api/convert_batch', {

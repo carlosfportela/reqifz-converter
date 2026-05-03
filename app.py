@@ -8,8 +8,9 @@ from pathlib import Path
 from flask import Flask, render_template, request, send_file, jsonify
 from werkzeug.utils import secure_filename
 
-# Import the correct converter class based on the latest script
+# Import the correct converter classes
 from reqifz_converter import ReqIFZConverter
+from reqifz_converter_v1_logic import ReqIFZConverterV1
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024  # 1GB max for multiple files
@@ -71,8 +72,12 @@ def convert_batch():
         
         status = 'success'
         try:
-            # Convert using reqifz_converter
-            converter = ReqIFZConverter(str(input_path), str(output_path))
+            # Convert using selected algorithm
+            algorithm = request.form.get('algorithm', 'v2')
+            if algorithm == 'v1':
+                converter = ReqIFZConverterV1(str(input_path), str(output_path))
+            else:
+                converter = ReqIFZConverter(str(input_path), str(output_path))
             converter.convert()
         except Exception as e:
             status = 'error'
