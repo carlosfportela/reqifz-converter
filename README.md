@@ -1,90 +1,92 @@
-# ReqIFZ Converter — IBM CLM RDNG  → IBM ELM DOORS NEXT 7.2
+# ReqIFZ Converter — IBM CLM RDNG → IBM ELM DOORS NEXT 7.2
 
-Aplicação Web desenvolvida em Python (Flask) para conversão em lote de arquivos `.reqifz`. A ferramenta ajusta pacotes exportados de versões anteriores do **IBM Doors Next Generation** para um formato rigoroso compatível com o **IBM Engineering Lifecycle Management (ELM) 7.2**.
+Read this in other languages: [Português](README.pt-br.md)
 
-Obs. Os testes foram realizados com sucesso com o arquivos reqifz do RDNG 6.0.4.
+Web application developed in Python (Flask) for batch conversion of `.reqifz` files. The tool adjusts packages exported from earlier versions of **IBM Doors Next Generation** into a strict format compatible with **IBM Engineering Lifecycle Management (ELM) 7.2**.
 
-## Recursos Atuais (Versão 2.0)
+Note: Tests were successfully performed with reqifz files from RDNG 6.0.4.
 
-- **Interface Web Moderna**: Interface intuitiva com suporte a drag-and-drop para múltiplos arquivos e tema "glassmorphism".
-- **Conversão em Lote**: Processe vários arquivos `.reqifz` simultaneamente de forma rápida e segura.
-- **Seleção de Algoritmo**: Escolha diretamente na interface qual motor de regras usar:
-  - **v2 (Regras Atuais)**: Algoritmo mais robusto. Desfaz aninhamentos inválidos graves (como tabelas dentro de parágrafos), lida com imagens convertendo base64 para arquivos físicos e corrige dezenas de tags não permitidas pela especificação ELM 7.2.
-  - **v1 (Regras Originais)**: Algoritmo legado que trata duplicação de IDs, remoção de elementos `<button>` e limpeza de atributos básicos.
-- **Visualização de Logs**: Acompanhe o processamento e eventuais avisos de cada arquivo em um terminal embutido na tela.
-- **Download Consolidado**: Baixe os pacotes convertidos individualmente ou todos de uma vez agrupados em um único arquivo `.zip`.
+## Current Features (Version 2.0 beta)
 
-## Instalação
+- **Modern Web Interface**: Intuitive interface with drag-and-drop support for multiple files and a "glassmorphism" theme.
+- **Batch Conversion**: Process multiple `.reqifz` files simultaneously quickly and safely.
+- **Algorithm Selection**: Choose directly in the interface which rule engine to use:
+  - **v2 (Current Rules)**: More robust algorithm. Undoes severe invalid nesting (like tables inside paragraphs), handles images by converting base64 to physical files, and fixes dozens of tags not allowed by the ELM 7.2 specification.
+  - **v1 (Original Rules)**: Legacy algorithm that handles ID duplication, removal of `<button>` elements, and basic attribute cleanup.
+- **Logs Visualization**: Track the processing and possible warnings for each file in an embedded terminal on the screen.
+- **Consolidated Download**: Download the converted packages individually or all at once grouped in a single `.zip` file.
 
-A aplicação requer **Python 3.8+**.
+## Installation
 
-1. Clone o repositório ou acesse a pasta do projeto.
-2. É recomendável criar um ambiente virtual (venv):
+The application requires **Python 3.8+**.
+
+1. Clone the repository or access the project folder.
+2. It is recommended to create a virtual environment (venv):
    ```bash
    python -m venv venv
-   # No Windows:
+   # On Windows:
    venv\Scripts\activate
-   # No Linux/Mac:
+   # On Linux/Mac:
    source venv/bin/activate
    ```
-3. Instale as dependências:
+3. Install the dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-## Como Executar
+## How to Run
 
-Para iniciar a aplicação web, rode o comando:
+To start the web application, run the command:
 
 ```bash
 python app.py
 ```
 
-Acesse no seu navegador o endereço: **http://localhost:5000**
+Access the address in your browser: **http://localhost:5000**
 
-> **Nota:** O script de conversão continua podendo ser executado via linha de comando para uso em automações:
+> **Note:** The conversion script can still be executed via command line for use in automations:
 > ```bash
-> python reqifz_converter.py meu_arquivo.reqifz
+> python reqifz_converter.py my_file.reqifz
 > ```
 
-## Incompatibilidades tratadas (Algoritmo v2)
+## Handled Incompatibilities (Algorithm v2)
 
-| # | Problema | Ação |
+| # | Problem | Action |
 |---|----------|------|
-| 1 | `<p>` envolvendo elementos de bloco (`<table>`, `<ul>`, `<ol>`, `<div>`, …) | Remove o `<p>` envoltório, promovendo os filhos ao nível pai |
-| 2 | Atributo `class` em elementos `reqif-xhtml` | Removido |
-| 3 | Atributo `lang` / `dir` | Removidos |
-| 4 | Atributo `style` com propriedades `mso-*`, `-webkit-*`, `-moz-*` | Propriedades proprietárias (Word/Browsers) removidas; propriedades CSS padrão mantidas |
-| 5 | Atributos de apresentação em `<table>` (`align`, `bgcolor`, `width`, etc) | Convertidos para CSS inline via atributo `style` |
-| 6 | Atributos de apresentação em `<td>`/`<th>` | Convertidos para CSS inline via `style` |
-| 7 | Tag `<img src="...">` | Convertida para `<object data="..." type="...">` conforme especificação ReqIF original |
-| 8 | Imagem embutida como `data:image/...;base64,...` | Decodificada, salva fisicamente como arquivo PNG/JPG na raiz do ZIP e referenciada corretamente |
-| 9 | Tag `<font>` | Convertida para `<span style="...">` |
-| 10| Caminhos de imagem com `\` (Windows) | Normalizados para `/` |
-| 11| Caracteres de controle inválidos em XML 1.0 | Removidos |
-| 12| Atributos não suportados em `<a>` (ex: `name`) | Removidos, promovidos a `id` quando necessário |
+| 1 | `<p>` wrapping block elements (`<table>`, `<ul>`, `<ol>`, `<div>`, …) | Removes the wrapper `<p>`, promoting children to the parent level |
+| 2 | `class` attribute in `reqif-xhtml` elements | Removed |
+| 3 | `lang` / `dir` attribute | Removed |
+| 4 | `style` attribute with `mso-*`, `-webkit-*`, `-moz-*` properties | Proprietary properties (Word/Browsers) removed; standard CSS properties kept |
+| 5 | Presentation attributes in `<table>` (`align`, `bgcolor`, `width`, etc) | Converted to inline CSS via `style` attribute |
+| 6 | Presentation attributes in `<td>`/`<th>` | Converted to inline CSS via `style` |
+| 7 | `<img src="...">` tag | Converted to `<object data="..." type="...">` according to the original ReqIF specification |
+| 8 | Image embedded as `data:image/...;base64,...` | Decoded, physically saved as PNG/JPG file in the ZIP root and correctly referenced |
+| 9 | `<font>` tag | Converted to `<span style="...">` |
+| 10| Image paths with `\` (Windows) | Normalized to `/` |
+| 11| Invalid control characters in XML 1.0 | Removed |
+| 12| Unsupported attributes in `<a>` (e.g., `name`) | Removed, promoted to `id` when necessary |
 
-## Estrutura do ReqIFZ Modificado
+## Modified ReqIFZ Structure
 
-Um `.reqifz` convertido é um arquivo ZIP válido para o ELM 7.2 contendo:
+A converted `.reqifz` is a valid ZIP file for ELM 7.2 containing:
 
 ```text
-meu_modulo_elm72.reqifz
-├── meu_modulo.reqif          ← XML principal corrigido, sanitizado e validado
-├── imagem_antiga.png         ← Arquivos de imagem que já existiam no pacote
-├── img_extraida_abc123.png   ← (Novo) Imagens extraídas do base64 durante a conversão
+my_module_elm72.reqifz
+├── my_module.reqif          ← Corrected, sanitized, and validated main XML
+├── old_image.png            ← Image files that already existed in the package
+├── extracted_img_abc123.png ← (New) Images extracted from base64 during conversion
 └── ...
 ```
 
-## Limitações conhecidas
+## Known Limitations
 
-- Tabelas e listas muito aninhadas de forma incorreta no DNG original são desaninhadas o máximo possível, mas estruturas extremamente confusas podem precisar de revisão visual após a importação.
-- O script preserva estritamente os GUIDs e a hierarquia dos requisitos para não quebrar referências cruzadas ou links.
-- Foca-se em correções XHTML; não faz "tradução" de tipos de artefatos caso eles tenham mudado de nome/ID no seu servidor de destino.
+- Tables and lists that are very incorrectly nested in the original DNG are un-nested as much as possible, but extremely confusing structures may require visual review after import.
+- The script strictly preserves GUIDs and the hierarchy of requirements so as not to break cross-references or links.
+- Focuses on XHTML corrections; does not do "translation" of artifact types if they have changed name/ID on your destination server.
 
-## Verificação Pós-Conversão
+## Post-Conversion Verification
 
-Após realizar a importação no ELM 7.2, é sugerido verificar:
-1. Se artefatos ricos (contendo tabelas complexas) importaram sem erros.
-2. Se as imagens que antes eram inseridas via *copiar e colar* no DNG 6 estão aparecendo normalmente.
-3. Se o fluxo geral não apresentou *Warnings* bloqueantes nos logs do servidor Jazz.
+After importing into ELM 7.2, it is suggested to verify:
+1. If rich artifacts (containing complex tables) imported without errors.
+2. If images that were previously inserted via *copy and paste* in DNG 6 are displaying normally.
+3. If the general flow did not present blocking *Warnings* in the Jazz server logs.

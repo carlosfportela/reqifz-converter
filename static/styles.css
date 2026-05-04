@@ -67,6 +67,12 @@ body {
 .header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
 .header p { color: var(--text-secondary); font-size: 1rem; line-height: 1.5; }
 
+/* Language Selector */
+.lang-selector { position: absolute; top: 1.5rem; right: 1.5rem; display: flex; gap: 0.5rem; z-index: 10; }
+.lang-btn { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-secondary); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+.lang-btn:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.1); }
+.lang-btn.active { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+
 /* Upload & Dropzone */
 .drop-zone {
     border: 2px dashed var(--glass-border); border-radius: 16px; padding: 2rem;
