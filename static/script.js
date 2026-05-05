@@ -125,9 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    setLanguage(currentLang);
-
     let currentFiles = [];
+    setLanguage(currentLang);
 
     // --- Eventos Drag and Drop ---
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {

@@ -61,6 +61,18 @@ class ReqIFZConverterV1:
                     del elem.attrib["id"]
                 else:
                     seen_ids.add(current_id)
+
+        # 2b. Correção de IDENTIFIER duplicados em tags ReqIF
+        seen_identifiers = set()
+        for elem in root.xpath("//*[@IDENTIFIER]"):
+            ident = elem.get("IDENTIFIER")
+            if ident in seen_identifiers:
+                parent = elem.getparent()
+                if parent is not None:
+                    parent.remove(elem)
+                    self.logger.info(f"Removido elemento ReqIF duplicado com IDENTIFIER: {ident}")
+            else:
+                seen_identifiers.add(ident)
                     
         # 3. Corrigir DATATYPE-DEFINITION-REAL
         for real in root.xpath(".//reqif:DATATYPE-DEFINITION-REAL", namespaces=ns):

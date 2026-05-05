@@ -78,7 +78,7 @@ BLOCK_TAGS = {
 
 # Atributos globalmente proibidos (sem exceções por tag)
 ATTRS_TO_REMOVE = {
-    "class", "lang", "dir",
+    "lang", "dir",
     "face", "size",
     "color",
     "valign", "nowrap", "compact",
@@ -111,8 +111,15 @@ log = logging.getLogger("reqifz_converter")
 # ===========================================================================
 
 def local_name(element) -> str:
+    """Retorna o nome local da tag, ignorando o namespace.
+    Retorna string vazia para nós especiais (comentários, PIs) cujo .tag
+    é um callable do lxml e não uma str.
+    """
     tag = element.tag
-    if tag and tag.startswith("{"):
+    if not isinstance(tag, str):
+        # Comentário XML, instrução de processamento, etc.
+        return ""
+    if tag.startswith("{"):
         return tag.split("}", 1)[1]
     return tag
 
@@ -152,12 +159,65 @@ def fix_header(root):
         return
     reqif_prefix = f"{{{REQIF_NS}}}"
     for child in list(header):
-        if not child.tag.startswith(reqif_prefix):
+        # child.tag pode ser callable (comentário/PI lxml) — ignorar esses nós
+        if not isinstance(child.tag, str) or not child.tag.startswith(reqif_prefix):
             header.remove(child)
     tid = header.find("reqif:TOOL-ID", ns)
     if tid is not None:
         tid.text = ELM72_TOOL_ID
     log.info("REQ-IF-HEADER atualizado (TOOL-ID → ELM 7.2).")
+
+
+def fix_duplicate_reqif_identifiers(root):
+    """
+    Trata elementos com IDENTIFIER duplicado (viola cvc-id.2 no ELM 7.2).
+
+    Estratégia por tipo de elemento:
+    - Elementos de ESQUEMA (ATTRIBUTE-DEFINITION-*, DATATYPE-DEFINITION-*,
+      SPEC-TYPE, RELATION-GROUP-TYPE, …): a duplicata é removida, pois são
+      definições estruturais que o DNG 6.0.4 exporta repetidas.
+    - Elementos de CONTEÚDO (SPEC-OBJECT, SPEC-RELATION, SPEC-HIERARCHY,
+      RELATION-GROUP): NÃO são removidos — são os artefatos/requisitos reais.
+      Em vez disso, o IDENTIFIER duplicado recebe um sufixo único para manter
+      a unicidade sem perder o artefato.
+    """
+    # Nomes locais de elementos que representam conteúdo (artefatos reais)
+    CONTENT_ELEMENTS = {
+        "SPEC-OBJECT", "SPEC-RELATION", "SPEC-HIERARCHY", "RELATION-GROUP",
+    }
+
+    seen_identifiers: dict = {}   # ident → contador de ocorrências
+    dup_counters: dict = {}        # ident → próximo sufixo disponível
+
+    for elem in root.xpath("//*[@IDENTIFIER]"):
+        if not isinstance(elem.tag, str):
+            continue
+        ident = elem.get("IDENTIFIER")
+        lname = local_name(elem)
+
+        if ident not in seen_identifiers:
+            seen_identifiers[ident] = lname
+            continue
+
+        # --- IDENTIFIER duplicado ---
+        if lname in CONTENT_ELEMENTS:
+            # Conteúdo: torna o IDENTIFIER único com sufixo em vez de remover
+            dup_counters[ident] = dup_counters.get(ident, 1) + 1
+            new_ident = f"{ident}-dup{dup_counters[ident]}"
+            elem.set("IDENTIFIER", new_ident)
+            log.warning(
+                "SPEC-OBJECT/RELATION com IDENTIFIER duplicado renomeado: "
+                "%s → %s", ident, new_ident
+            )
+        else:
+            # Esquema: remove a duplicata (comportamento original)
+            parent = elem.getparent()
+            if parent is not None:
+                parent.remove(elem)
+                log.info(
+                    "Removido elemento de esquema ReqIF duplicado "
+                    "(IDENTIFIER=%s, tag=%s)", ident, lname
+                )
 
 
 def fix_duplicate_ids_and_anchors(root):
@@ -216,6 +276,8 @@ def fix_prohibited_attrs(root):
     """
     xhtml_ns = XHTML_NS_URL
     for elem in root.xpath("//xhtml:*", namespaces={"xhtml": xhtml_ns}):
+        if not isinstance(elem.tag, str):
+            continue  # Nó especial (comentário/PI) — pular
         lname = local_name(elem)
         if lname == "ol":
             elem.attrib.pop("start", None)
@@ -323,11 +385,10 @@ def fix_media_elements(root, file_map: dict, extracted_images: dict):
                 parent = elem.getparent()
                 if parent is not None:
                     parent.remove(elem)
-            else:
-                # <object> não resolvido → normaliza caminho e avisa
-                normalized = val.replace("\\", "/")
-                elem.set("data", normalized)
-                log.warning("Referência de object não resolvida no file_map: %s", val)
+            # <object> não resolvido → deixar sem modificação alguma.
+            # Artefatos aninhados do IBM DOORS são <object> com data=URI interna
+            # que nunca aparece no file_map; modificá-los quebra a referência.
+            # Comportamento idêntico ao da v1.
 
 
 # ===========================================================================
@@ -476,7 +537,12 @@ class XHTMLFixer:
                 continue
 
             # Atributos globalmente proibidos
+            # Exceção: 'name' em <object> não deve ser removido.
+            # Na v1, 'name' só é removido de <a>; em <object>, pode ser
+            # necessário para identificar referências de artefatos aninhados.
             if local_attr in ATTRS_TO_REMOVE:
+                if local_attr == "name" and lname == "object":
+                    continue  # preserva name em <object> (artefato aninhado)
                 del elem.attrib[attr]
                 continue
 
@@ -640,6 +706,7 @@ class ReqIFZConverter:
         # ── Regras do v1 (nível de documento) ──────────────────────────
         fix_header(root)
         fix_duplicate_ids_and_anchors(root)
+        fix_duplicate_reqif_identifiers(root)
         fix_datatype_real(root)
 
         # ── Lógica de mídia avançada (v1-5 + extração base64 do v2) ────

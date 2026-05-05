@@ -70,6 +70,18 @@ def patch_reqif_xml(xml_path, file_map):
                 del elem.attrib["id"]
             else:
                 seen_ids.add(current_id)
+
+    # 2b. Correção de IDENTIFIER duplicados em tags ReqIF
+    seen_identifiers = set()
+    for elem in root.xpath("//*[@IDENTIFIER]"):
+        ident = elem.get("IDENTIFIER")
+        if ident in seen_identifiers:
+            parent = elem.getparent()
+            if parent is not None:
+                parent.remove(elem)
+                print(f"  [Info] Removido elemento ReqIF duplicado com IDENTIFIER: {ident}")
+        else:
+            seen_identifiers.add(ident)
     # 3. Corrigir DATATYPE-DEFINITION-REAL (Regra preservada conforme sua versão)
     for real in root.xpath(".//reqif:DATATYPE-DEFINITION-REAL", namespaces=ns):
         if "MIN" not in real.attrib:
