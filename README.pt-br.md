@@ -65,6 +65,7 @@ Acesse no seu navegador o endereço: **http://localhost:5000**
 | 10| Caminhos de imagem com `\` (Windows) | Normalizados para `/` |
 | 11| Caracteres de controle inválidos em XML 1.0 | Removidos |
 | 12| Atributos não suportados em `<a>` (ex: `name`) | Removidos, promovidos a `id` quando necessário |
+| 13| Atributos `IDENTIFIER` duplicados | Renomeia identificadores duplicados em elementos de conteúdo para garantir a unicidade e remove duplicatas de esquema |
 
 ## Estrutura do ReqIFZ Modificado
 

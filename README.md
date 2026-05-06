@@ -65,6 +65,7 @@ Access the address in your browser: **http://localhost:5000**
 | 10| Image paths with `\` (Windows) | Normalized to `/` |
 | 11| Invalid control characters in XML 1.0 | Removed |
 | 12| Unsupported attributes in `<a>` (e.g., `name`) | Removed, promoted to `id` when necessary |
+| 13| Duplicate `IDENTIFIER` attributes | Renames duplicate identifiers in content elements to ensure uniqueness and removes schema duplicates |
 
 ## Modified ReqIFZ Structure
 
