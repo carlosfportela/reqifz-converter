@@ -4,133 +4,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReqIFZ Converter | IBM ELM 7.2</title>
-    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <title>Conversor ReqIFZ | IBM ELM 7.2</title>
+    <meta name="description" content="Converta arquivos .reqifz do IBM RDNG para o formato IBM ELM 7.2 com logs detalhados.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
-    <!-- FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
-    <div class="background-elements">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-    </div>
 
-    <div class="lang-selector">
-        <button class="lang-btn active" data-lang="pt-BR">PT</button>
-        <button class="lang-btn" data-lang="en">EN</button>
-    </div>
+    <header class="topbar">
+        <div class="topbar-left">
+            <i class="fa-solid fa-file-export"></i>
+            <h1>ReqIFZ Converter</h1>
+        </div>
+    </header>
 
     <main class="container">
-        <header class="header">
-            <div class="logo">
-                <i class="fa-solid fa-file-export"></i>
-            </div>
-            <h1>ReqIFZ Converter</h1>
-            <p data-i18n="header_desc">Converta pacotes ReqIFZ do IBM RDNG de versões anteriores para a versão ELM 7.2.
-                Arraste múltiplos
-                arquivos para convertê-los em lote.</p>
-        </header>
 
-        <!-- Etapa 1: Upload -->
-        <section id="step-upload" class="upload-section">
-            <div class="algorithm-selection"
-                style="margin-bottom: 20px; text-align: left; background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); backdrop-filter: blur(10px);">
-                <label for="algorithm-select" data-i18n="algo_label"
-                    style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-color);">Algoritmo de
-                    Conversão:</label>
-                <select id="algorithm-select"
-                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.2); color: var(--text-color); font-family: inherit; font-size: 1rem; cursor: pointer; outline: none;">
-                    <option value="v2" style="background: #1e1e2e; color: #fff;" data-i18n="algo_v2">v2 (Regras Atuais)
-                    </option>
-                    <option value="v1" style="background: #1e1e2e; color: #fff;" data-i18n="algo_v1">v1 (Regras
-                        Originais)</option>
-                </select>
-            </div>
-
-            <div id="drop-zone" class="drop-zone">
-                <div class="drop-zone-content">
-                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                    <h2 id="drop-text" data-i18n="drop_title">Arraste seus arquivos .reqifz aqui</h2>
-                    <p data-i18n="drop_desc">Você pode soltar múltiplos arquivos</p>
-                    <input type="file" id="file-input" accept=".reqifz" multiple hidden>
-                    <button class="btn-primary" id="browse-btn" data-i18n="browse_btn">Procurar Arquivos</button>
-                </div>
-
-                <!-- Lista de arquivos selecionados -->
-                <div id="file-list-container" class="file-list-container hidden">
-                    <div class="file-list-header">
-                        <h3><span data-i18n="selected_files">Arquivos Selecionados</span> (<span
-                                id="file-count">0</span>)</h3>
-                        <button id="clear-all-btn" class="btn-text" data-i18n="clear_all">Limpar tudo</button>
-                    </div>
-                    <ul id="selected-files-list" class="files-list"></ul>
-                    <button id="convert-btn" class="btn-success">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="start_conversion">Iniciar
-                            Conversão em Lote</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Etapa 2: Carregando -->
-        <section id="step-loading" class="loading-state hidden">
-            <div class="spinner"></div>
-            <p data-i18n="processing">Processando arquivos, por favor aguarde...</p>
-        </section>
-
-        <!-- Etapa 3: Resultado e Logs -->
-        <section id="step-result" class="result-section hidden">
-            <div class="result-header">
-                <h2><i class="fa-solid fa-check-double" style="color:var(--success-color)"></i> <span
-                        data-i18n="conversion_done">Conversão Concluída</span></h2>
-                <button id="new-batch-btn" class="btn-secondary" data-i18n="new_batch">Novo Lote</button>
-            </div>
-
-            <div class="terminal-container">
-                <div class="terminal-header">
-                    <div class="terminal-dots">
-                        <span></span><span></span><span></span>
-                    </div>
-                    <div class="terminal-title" data-i18n="logs_title">Logs de Conversão</div>
-                </div>
-                <div id="terminal-logs" class="terminal-body">
-                    <!-- Logs entrarão aqui -->
-                </div>
-            </div>
-
-            <div class="downloads-container">
-                <h3 data-i18n="files_ready">Arquivos Prontos</h3>
-                <ul id="download-files-list" class="files-list download-list"></ul>
-
-                <div class="download-all-actions">
-                    <button id="download-all-btn" class="btn-success">
-                        <i class="fa-solid fa-file-zipper"></i> <span data-i18n="download_all">Baixar Todos
-                            (.zip)</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <div id="alert-container" class="alert-container hidden">
-            <div id="alert-box" class="alert">
-                <i id="alert-icon" class="fa-solid fa-circle-check"></i>
-                <span id="alert-message"></span>
-            </div>
+        <div class="page-header">
+            <h1 class="page-title">Conversor de Pacotes ReqIFZ</h1>
+            <p class="page-subtitle">Converta arquivos do IBM RDNG para IBM ELM 7.2. Migração em lote com logs detalhados.</p>
         </div>
-        <footer class="app-footer">
-            <span>v2.0 beta</span>
-        </footer>
+
+        <div class="info-card">
+            <p>
+                Esta ferramenta realiza a conversão em lote de pacotes <strong>.reqifz</strong> exportados do IBM RDNG
+                (versões anteriores) para o formato compatível com o <strong>IBM ELM 7.2</strong>. Arraste seus arquivos
+                na área abaixo para iniciar.
+            </p>
+        </div>
+
+        <div class="converter-box">
+
+            <!-- Step 1: Upload -->
+            <div id="step-upload">
+                <div class="form-group">
+                    <label for="algorithm-select">Algoritmo de Conversão:</label>
+                    <select id="algorithm-select" class="form-select">
+                        <option value="v2">v2 (Regras Atuais)</option>
+                        <option value="v1">v1 (Regras Originais)</option>
+                    </select>
+                </div>
+
+                <div id="drop-zone" class="drop-zone">
+                    <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                    <h2 class="drop-title">Arraste seus arquivos .reqifz aqui</h2>
+                    <p class="drop-subtitle">Você pode soltar múltiplos arquivos</p>
+                    <input type="file" id="file-input" accept=".reqifz" multiple hidden>
+                    <button class="btn-primary" id="browse-btn">Procurar Arquivos</button>
+
+                    <div id="file-list-container" class="file-list-container hidden">
+                        <div class="file-list-header">
+                            <h3>Arquivos Selecionados (<span id="file-count">0</span>)</h3>
+                            <button id="clear-all-btn" class="btn-text">Limpar tudo</button>
+                        </div>
+                        <ul id="selected-files-list" class="files-list"></ul>
+                        <button id="convert-btn" class="btn-success">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Iniciar Conversão em Lote
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Loading -->
+            <div id="step-loading" class="loading-state hidden">
+                <div class="spinner"></div>
+                <p>Processando arquivos, por favor aguarde...</p>
+            </div>
+
+            <!-- Step 3: Result -->
+            <div id="step-result" class="hidden">
+                <div class="result-header">
+                    <h2><i class="fa-solid fa-check-circle"></i> Conversão Concluída</h2>
+                    <button id="new-batch-btn" class="btn-secondary">Novo Lote</button>
+                </div>
+
+                <div class="terminal-container">
+                    <div class="terminal-header">Logs de Conversão</div>
+                    <div id="terminal-logs" class="terminal-body"></div>
+                </div>
+
+                <div style="margin-top:20px;">
+                    <div class="file-list-header" style="border:none;padding:0;margin-bottom:10px;">
+                        <h3>Arquivos Prontos</h3>
+                    </div>
+                    <ul id="download-files-list" class="files-list"></ul>
+                    <button id="download-all-btn" class="btn-success" style="margin-top:15px;">
+                        <i class="fa-solid fa-file-zipper"></i> Baixar Todos (.zip)
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
     </main>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
+    <footer class="footer">
+        <strong>ReqIFZ Converter</strong> | v2.0 beta | IBM RDNG &rarr; IBM ELM 7.2
+    </footer>
 
+    <!-- Alert -->
+    <div id="alert-container" class="hidden">
+        <div id="alert-box" class="alert">
+            <i id="alert-icon"></i>
+            <span id="alert-message"></span>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
 </html>

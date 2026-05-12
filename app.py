@@ -29,10 +29,6 @@ class MemoryLogHandler(logging.Handler):
 
 @app.route('/')
 def index():
-    return render_template('index2.html')
-
-@app.route('/layout2')
-def index2():
     return render_template('index.html')
 
 @app.route('/api/convert_batch', methods=['POST'])
