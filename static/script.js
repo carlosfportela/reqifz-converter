@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const browseBtn = document.getElementById('browse-btn');
-    const dropZoneContent = document.querySelector('.drop-zone-content');
+    const dropZoneContent = document.querySelector('.drop-zone-content'); // may be null in index2.html
     const fileListContainer = document.getElementById('file-list-container');
     const selectedFilesList = document.getElementById('selected-files-list');
     const fileCount = document.getElementById('file-count');
@@ -194,11 +194,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateFileListUI() {
         if (currentFiles.length === 0) {
             fileListContainer.classList.add('hidden');
-            dropZoneContent.style.display = 'flex';
+            if (dropZoneContent) dropZoneContent.style.display = 'flex';
+            dropZone.classList.remove('has-files');
             return;
         }
 
-        dropZoneContent.style.display = 'none';
+        if (dropZoneContent) dropZoneContent.style.display = 'none';
+        dropZone.classList.add('has-files');
         fileListContainer.classList.remove('hidden');
         fileCount.textContent = currentFiles.length;
 

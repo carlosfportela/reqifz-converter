@@ -94,7 +94,14 @@ class ReqIFZConverterV1:
                 if elem.get(attr) is not None:
                     del elem.attrib[attr]
                     
-        # 5. Lógica de Mídia
+        # 5. Converte <thead> e <tfoot> em <tbody> (schema XHTML do ELM 7.2 só aceita <tbody>)
+        tbody_tag = f"{{{xhtml_ns}}}tbody"
+        for elem in root.xpath("//xhtml:thead | //xhtml:tfoot", namespaces={'xhtml': xhtml_ns}):
+            old_tag = etree.QName(elem).localname
+            elem.tag = tbody_tag
+            self.logger.info(f"<{old_tag}> convertido em <tbody> (ReqIF XHTML schema).")
+
+        # 6. Lógica de Mídia
         for elem in root.xpath("//xhtml:object | //xhtml:img", namespaces={'xhtml': xhtml_ns}):
             is_img = 'img' in elem.tag
             attr = 'src' if is_img else 'data'

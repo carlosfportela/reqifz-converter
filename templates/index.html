@@ -34,7 +34,8 @@
                 <i class="fa-solid fa-file-export"></i>
             </div>
             <h1>ReqIFZ Converter</h1>
-            <p data-i18n="header_desc">Converta pacotes ReqIFZ do IBM RDNG de versões anteriores para a versão ELM 7.2. Arraste múltiplos
+            <p data-i18n="header_desc">Converta pacotes ReqIFZ do IBM RDNG de versões anteriores para a versão ELM 7.2.
+                Arraste múltiplos
                 arquivos para convertê-los em lote.</p>
         </header>
 
@@ -47,8 +48,10 @@
                     Conversão:</label>
                 <select id="algorithm-select"
                     style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.2); color: var(--text-color); font-family: inherit; font-size: 1rem; cursor: pointer; outline: none;">
-                    <option value="v2" style="background: #1e1e2e; color: #fff;" data-i18n="algo_v2">v2 (Regras Atuais)</option>
-                    <option value="v1" style="background: #1e1e2e; color: #fff;" data-i18n="algo_v1">v1 (Regras Originais)</option>
+                    <option value="v2" style="background: #1e1e2e; color: #fff;" data-i18n="algo_v2">v2 (Regras Atuais)
+                    </option>
+                    <option value="v1" style="background: #1e1e2e; color: #fff;" data-i18n="algo_v1">v1 (Regras
+                        Originais)</option>
                 </select>
             </div>
 
@@ -64,12 +67,14 @@
                 <!-- Lista de arquivos selecionados -->
                 <div id="file-list-container" class="file-list-container hidden">
                     <div class="file-list-header">
-                        <h3><span data-i18n="selected_files">Arquivos Selecionados</span> (<span id="file-count">0</span>)</h3>
+                        <h3><span data-i18n="selected_files">Arquivos Selecionados</span> (<span
+                                id="file-count">0</span>)</h3>
                         <button id="clear-all-btn" class="btn-text" data-i18n="clear_all">Limpar tudo</button>
                     </div>
                     <ul id="selected-files-list" class="files-list"></ul>
                     <button id="convert-btn" class="btn-success">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="start_conversion">Iniciar Conversão em Lote</span>
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="start_conversion">Iniciar
+                            Conversão em Lote</span>
                     </button>
                 </div>
             </div>
@@ -84,7 +89,8 @@
         <!-- Etapa 3: Resultado e Logs -->
         <section id="step-result" class="result-section hidden">
             <div class="result-header">
-                <h2><i class="fa-solid fa-check-double" style="color:var(--success-color)"></i> <span data-i18n="conversion_done">Conversão Concluída</span></h2>
+                <h2><i class="fa-solid fa-check-double" style="color:var(--success-color)"></i> <span
+                        data-i18n="conversion_done">Conversão Concluída</span></h2>
                 <button id="new-batch-btn" class="btn-secondary" data-i18n="new_batch">Novo Lote</button>
             </div>
 
@@ -106,7 +112,8 @@
 
                 <div class="download-all-actions">
                     <button id="download-all-btn" class="btn-success">
-                        <i class="fa-solid fa-file-zipper"></i> <span data-i18n="download_all">Baixar Todos (.zip)</span>
+                        <i class="fa-solid fa-file-zipper"></i> <span data-i18n="download_all">Baixar Todos
+                            (.zip)</span>
                     </button>
                 </div>
             </div>

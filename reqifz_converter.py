@@ -268,6 +268,25 @@ def fix_datatype_real(root):
             real.attrib["MAX"] = "1.0E308"
 
 
+def fix_thead_to_tbody(root):
+    """
+    Regra nova: Converte <thead> e <tfoot> em <tbody> no XHTML interno.
+
+    O schema XHTML restrito usado pelo IBM ELM 7.2 não aceita <thead> nem
+    <tfoot> como filhos de <table>; apenas <tbody> é permitido.
+    Todos os atributos e filhos são preservados; somente o nome da tag muda.
+    """
+    xhtml_ns = XHTML_NS_URL
+    tbody_tag = f"{{{xhtml_ns}}}tbody"
+    for elem in root.xpath(
+        "//xhtml:thead | //xhtml:tfoot",
+        namespaces={"xhtml": xhtml_ns},
+    ):
+        old_tag = local_name(elem)
+        elem.tag = tbody_tag
+        log.info("<%s> convertido em <tbody> (ReqIF XHTML schema).", old_tag)
+
+
 def fix_prohibited_attrs(root):
     """
     Regra v1-4: Remove atributos proibidos por tag específica:
@@ -708,6 +727,7 @@ class ReqIFZConverter:
         fix_duplicate_ids_and_anchors(root)
         fix_duplicate_reqif_identifiers(root)
         fix_datatype_real(root)
+        fix_thead_to_tbody(root)  # <thead>/<tfoot> → <tbody> (ELM 7.2 schema)
 
         # ── Lógica de mídia avançada (v1-5 + extração base64 do v2) ────
         fix_media_elements(root, file_map, self.extracted_images)
