@@ -287,6 +287,53 @@ def fix_thead_to_tbody(root):
         log.info("<%s> convertido em <tbody> (ReqIF XHTML schema).", old_tag)
 
 
+def fix_empty_tables(root):
+    """
+    Regra nova: Garante que todo <table> tenha ao menos um filho estrutural
+    válido exigido pelo schema XHTML do IBM ELM 7.2
+    (tbody, thead, tfoot, tr, col, colgroup ou caption).
+
+    Estratégia:
+    1. <tr> diretos de <table> são agrupados dentro de um novo <tbody>.
+    2. <table> que ainda ficar completamente vazio (sem nenhum filho válido)
+       é removido, pois um <table> sem corpo viola o schema.
+    """
+    xhtml_ns = XHTML_NS_URL
+    valid_table_children = {
+        "tbody", "thead", "tfoot", "tr", "col", "colgroup", "caption"
+    }
+    tbody_tag = f"{{{xhtml_ns}}}tbody"
+    tr_tag    = f"{{{xhtml_ns}}}tr"
+
+    for table in root.xpath("//xhtml:table", namespaces={"xhtml": xhtml_ns}):
+        # 1. Mover <tr> filhos diretos para dentro de um <tbody>
+        direct_trs = [ch for ch in list(table) if ch.tag == tr_tag]
+        if direct_trs:
+            new_tbody = etree.SubElement(table, tbody_tag)
+            for tr in direct_trs:
+                table.remove(tr)
+                new_tbody.append(tr)
+            log.info(
+                "<tr>(s) diretos de <table> agrupados em novo <tbody> "
+                "(%d linha(s)).", len(direct_trs)
+            )
+
+        # 2. Verificar se existe ao menos um filho estrutural válido
+        has_valid_child = any(
+            local_name(ch) in valid_table_children
+            for ch in table
+            if isinstance(ch.tag, str)
+        )
+        if not has_valid_child:
+            parent = table.getparent()
+            if parent is not None:
+                parent.remove(table)
+                log.warning(
+                    "<table> vazia (sem filhos válidos) removida para "
+                    "conformidade com o schema XHTML do ELM 7.2."
+                )
+
+
 def fix_prohibited_attrs(root):
     """
     Regra v1-4: Remove atributos proibidos por tag específica:
@@ -728,6 +775,7 @@ class ReqIFZConverter:
         fix_duplicate_reqif_identifiers(root)
         fix_datatype_real(root)
         fix_thead_to_tbody(root)  # <thead>/<tfoot> → <tbody> (ELM 7.2 schema)
+        fix_empty_tables(root)    # remove/corrige <table> sem filhos válidos
 
         # ── Lógica de mídia avançada (v1-5 + extração base64 do v2) ────
         fix_media_elements(root, file_map, self.extracted_images)
