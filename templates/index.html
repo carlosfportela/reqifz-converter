@@ -4,12 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversor ReqIFZ | IBM ELM 7.2</title>
-    <meta name="description" content="Converta arquivos .reqifz do IBM RDNG para o formato IBM ELM 7.2 com logs detalhados.">
+    <title>ReqIFZ Converter - Conversor ReqIFZ | IBM ELM 7.2</title>
+    <meta name="description"
+        content="Converta arquivos .reqifz do IBM RDNG para o formato IBM ELM 7.2 com logs detalhados.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
@@ -26,7 +30,8 @@
 
         <div class="page-header">
             <h1 class="page-title">Conversor de Pacotes ReqIFZ</h1>
-            <p class="page-subtitle">Converta arquivos do IBM RDNG para IBM ELM 7.2. Migração em lote com logs detalhados.</p>
+            <p class="page-subtitle">Converta arquivos do IBM RDNG para IBM ELM 7.2. Migração em lote com logs
+                detalhados.</p>
         </div>
 
         <div class="info-card">
@@ -103,7 +108,7 @@
     </main>
 
     <footer class="footer">
-        <strong>ReqIFZ Converter</strong> | v2.0 beta | IBM RDNG &rarr; IBM ELM 7.2
+        <strong>ReqIFZ Converter</strong> | v2.1.1 | IBM RDNG &rarr; IBM ELM 7.2
     </footer>
 
     <!-- Alert -->
@@ -117,4 +122,5 @@
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
+
 </html>
