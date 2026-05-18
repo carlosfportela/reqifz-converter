@@ -1,0 +1,18 @@
+[project]
+name = "reqifz-converter"
+version = "2.1.1"
+description = "Convert ReqIFZ files with advanced HTML cleanup and ReqIF validation"
+authors = [
+    { name = "Carlos Portela", email = "[EMAIL_ADDRESS]" }
+]
+license = { file = "LICENSE" }
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.dependencies]
+lxml = ">=4.9.2"
+
+[project.scripts]
+reqifz-converter = "reqifz_converter:main"
