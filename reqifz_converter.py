@@ -76,6 +76,15 @@ BLOCK_TAGS = {
     "header", "footer", "main", "nav",
 }
 
+# Tags inline NÃO permitidas pelo schema XHTML do ReqIF/ELM 7.2 que devem
+# ser "unwrapped": o tag é removido mas texto e filhos são preservados no pai.
+# O schema só permite como inline: br, span, em, strong, dfn, code, samp,
+# kbd, var, cite, abbr, acronym, q, tt, i, b, big, small, sub, sup,
+# a, object, ins, del.
+INLINE_TAGS_TO_UNWRAP = {
+    "label", "fieldset", "legend",
+}
+
 # Atributos globalmente proibidos (sem exceções por tag)
 ATTRS_TO_REMOVE = {
     "lang", "dir",
@@ -458,6 +467,77 @@ def fix_media_elements(root, file_map: dict, extracted_images: dict):
 
 
 # ===========================================================================
+# Unwrap de tags inline não permitidas pelo schema do ELM 7.2
+# ===========================================================================
+
+def _unwrap_element(elem):
+    """
+    Remove o tag do elemento preservando seu texto e filhos no pai.
+    Equivalente ao "unwrap" HTML: <label>foo <b>bar</b></label>
+    vira: foo <b>bar</b> solto no contexto do elemento pai.
+    """
+    parent = elem.getparent()
+    if parent is None:
+        return
+
+    children = list(elem)
+    siblings = list(parent)
+    idx = siblings.index(elem)
+
+    # Texto do elem: vai para parent.text ou tail do irmão anterior
+    if elem.text:
+        if idx == 0:
+            parent.text = (parent.text or "") + elem.text
+        else:
+            prev = siblings[idx - 1]
+            prev.tail = (prev.tail or "") + elem.text
+
+    # Insere os filhos no lugar do elem
+    for i, child in enumerate(children):
+        parent.insert(idx + i, child)
+
+    # Tail do elem: vai para o último filho inserido ou irmão anterior
+    if elem.tail:
+        num = len(children)
+        if num > 0:
+            last_child = parent[idx + num - 1]
+            last_child.tail = (last_child.tail or "") + elem.tail
+        elif idx == 0:
+            parent.text = (parent.text or "") + elem.tail
+        else:
+            prev_sib = list(parent)[idx - 1]
+            prev_sib.tail = (prev_sib.tail or "") + elem.tail
+
+    parent.remove(elem)
+
+
+def fix_invalid_inline_elements(root):
+    """
+    Regra 16: Remove tags inline não permitidas pelo schema XHTML do ELM 7.2,
+    preservando texto e filhos (unwrap).
+
+    Afeta: <label>, <fieldset>, <legend> (INLINE_TAGS_TO_UNWRAP).
+    O schema do ReqIF só aceita como inline:
+      br, span, em, strong, dfn, code, samp, kbd, var, cite, abbr, acronym,
+      q, tt, i, b, big, small, sub, sup, a, object, ins, del.
+    """
+    xhtml_ns = XHTML_NS_URL
+    for tag_name in INLINE_TAGS_TO_UNWRAP:
+        # Coleta todos antes de modificar a árvore (evita iteração sobre lista em mudança)
+        elems = root.xpath(
+            f"//xhtml:{tag_name}",
+            namespaces={"xhtml": xhtml_ns},
+        )
+        for elem in elems:
+            log.info(
+                "<%s> nao permitido pelo schema XHTML do ELM 7.2 "
+                "-- removendo tag, preservando conteudo.",
+                tag_name,
+            )
+            _unwrap_element(elem)
+
+
+# ===========================================================================
 # XHTMLFixer — limpeza por elemento (preserva lógica v2 + complementa v1)
 # ===========================================================================
 
@@ -776,6 +856,7 @@ class ReqIFZConverter:
         fix_datatype_real(root)
         fix_thead_to_tbody(root)  # <thead>/<tfoot> → <tbody> (ELM 7.2 schema)
         fix_empty_tables(root)    # remove/corrige <table> sem filhos válidos
+        fix_invalid_inline_elements(root)  # <label> e outros não permitidos: unwrap
 
         # ── Lógica de mídia avançada (v1-5 + extração base64 do v2) ────
         fix_media_elements(root, file_map, self.extracted_images)

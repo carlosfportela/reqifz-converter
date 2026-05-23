@@ -34,20 +34,69 @@ The application requires **Python 3.8+**.
    pip install -r requirements.txt
    ```
 
-## How to Run
+## Running Modes
 
-To start the web application, run the command:
+The application supports three execution modes. Choose based on your needs:
+
+| Mode | Command | Server | Use when… |
+|------|---------|--------|-----------|
+| **Development** | `python app.py` | Flask dev | Writing code — hot-reload, detailed errors |
+| **Local production** | `.\start_prod_local.ps1` | Waitress | Testing production behavior on Windows |
+| **OpenShift** | `gunicorn -c gunicorn.conf.py app:app` | Gunicorn | Deploying to the OpenShift cluster |
+
+### 1. Development (Windows)
 
 ```bash
 python app.py
 ```
 
-Access the address in your browser: **http://localhost:5000**
+Access in your browser: **http://localhost:5000**
+
+The Flask dev server starts with `debug=True` and automatic hot-reload. **Never use this in production.**
+
+### 2. Local Production Simulation (Windows)
+
+To test production behavior locally before deploying to OpenShift:
+
+```powershell
+.\start_prod_local.ps1
+```
+
+Access in your browser: **http://localhost:8080**
+
+This uses [Waitress](https://docs.pylonsproject.org/projects/waitress/) — a pure-Python WSGI server fully supported on Windows, with multi-threading and no debug mode.
+
+### 3. Production — OpenShift
+
+On OpenShift, the `Procfile` is detected automatically by the S2I build process:
+
+```
+web: gunicorn -c gunicorn.conf.py app:app
+```
+
+Configuration is controlled via environment variables set in the OpenShift deployment:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SECRET_KEY` | *(required)* | Cryptographic key — generate with `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `PORT` | `8080` | Listening port (OpenShift default) |
+| `WEB_CONCURRENCY` | `2×CPUs+1` | Number of Gunicorn worker processes |
+| `GUNICORN_THREADS` | `4` | Threads per worker |
+| `GUNICORN_TIMEOUT` | `600` | Request timeout in seconds |
+| `LOG_LEVEL` | `info` | Log verbosity: `debug`, `info`, `warning`, `error` |
+
+Copy `.env.example` to `.env` for local configuration:
+
+```bash
+cp .env.example .env
+# Edit .env with your values
+```
 
 > **Note:** The conversion script can still be executed via command line for use in automations:
 > ```bash
 > python reqifz_converter.py my_file.reqifz
 > ```
+
 
 ## Handled Incompatibilities (Algorithm v2)
 
