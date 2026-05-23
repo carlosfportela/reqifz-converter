@@ -4,5 +4,4 @@
 # O comando abaixo inicia o Gunicorn com toda a configuração de gunicorn.conf.py.
 #
 # Documentação: https://docs.openshift.com/container-platform/latest/openshift_images/s2i_images/python.html
-
-web: gunicorn -c gunicorn.conf.py app:app
+web: gunicorn -c gunicorn.conf.py wsgi:app

@@ -5,50 +5,15 @@ import tempfile
 import zipfile
 import logging
 from pathlib import Path
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Blueprint, render_template, request, send_file, jsonify
 from werkzeug.utils import secure_filename
 
-# Carrega variáveis de ambiente do arquivo .env (se existir)
-# Em produção (OpenShift), as variáveis já estão no ambiente do container
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass  # python-dotenv é opcional; em produção as env vars já estão disponíveis
+from app.converter.reqifz_converter import ReqIFZConverter
 
-# Import the correct converter classes
-from reqifz_converter import ReqIFZConverter
+bp = Blueprint('routes', __name__)
 
-app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 1000 * 1024 * 1024  # 1GB max para múltiplos arquivos
-
-# In-memory storage for batches (in a real app, use a DB or Redis)
-# batches[batch_id] = { 'dir': '/tmp/...', 'files': [ {id, original_name, output_filename, log} ] }
 batches = {}
 
-
-# ---------------------------------------------------------------------------
-# Headers de Segurança HTTP
-# Aplicados em todas as respostas, independente do modo de execução.
-# ---------------------------------------------------------------------------
-@app.after_request
-def add_security_headers(response):
-    # Impede que a aplicação seja embutida em iframes (proteção contra clickjacking)
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    # Impede que o browser "adivinhe" o tipo de conteúdo (MIME sniffing)
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    # Ativa filtro XSS nos browsers antigos que o suportam
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    # Não envia o Referer ao navegar para outros domínios
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    # Remove cabeçalho que expõe a tecnologia do servidor
-    response.headers.pop('Server', None)
-    return response
-
-
-# ---------------------------------------------------------------------------
-# Log Handler para captura por arquivo
-# ---------------------------------------------------------------------------
 class MemoryLogHandler(logging.Handler):
     def __init__(self):
         super().__init__()
@@ -58,16 +23,11 @@ class MemoryLogHandler(logging.Handler):
         msg = self.format(record)
         self.logs.append(msg)
 
-
-# ---------------------------------------------------------------------------
-# Rotas
-# ---------------------------------------------------------------------------
-@app.route('/')
+@bp.route('/')
 def index():
     return render_template('index.html')
 
-
-@app.route('/api/convert_batch', methods=['POST'])
+@bp.route('/api/convert_batch', methods=['POST'])
 def convert_batch():
     if 'files' not in request.files:
         return jsonify({'error': 'Nenhum arquivo enviado'}), 400
@@ -133,8 +93,7 @@ def convert_batch():
         'results': batch_data['files']
     })
 
-
-@app.route('/api/download/<batch_id>/<file_id>', methods=['GET'])
+@bp.route('/api/download/<batch_id>/<file_id>', methods=['GET'])
 def download_file(batch_id, file_id):
     if batch_id not in batches:
         return "Lote não encontrado", 404
@@ -156,8 +115,7 @@ def download_file(batch_id, file_id):
         mimetype='application/zip'
     )
 
-
-@app.route('/api/download_all/<batch_id>', methods=['GET'])
+@bp.route('/api/download_all/<batch_id>', methods=['GET'])
 def download_all(batch_id):
     if batch_id not in batches:
         return "Lote não encontrado", 404
@@ -182,25 +140,3 @@ def download_all(batch_id):
         download_name=f"reqifz_batch_converted_{batch_id[:8]}.zip",
         mimetype='application/zip'
     )
-
-
-# ---------------------------------------------------------------------------
-# Entrada principal — apenas para desenvolvimento local (Windows)
-# Em produção: use Gunicorn (Linux/OpenShift) ou Waitress (Windows)
-# ---------------------------------------------------------------------------
-if __name__ == '__main__':
-    flask_env = os.environ.get('FLASK_ENV', 'development')
-
-    if flask_env == 'development':
-        port = int(os.environ.get('PORT', 5000))
-        print(f"\n  🛠  Modo: DESENVOLVIMENTO (Flask dev server)")
-        print(f"  📍 Acesse: http://localhost:{port}")
-        print(f"  ⚠  Para simular produção no Windows: .\\start_prod_local.ps1\n")
-        app.run(host='0.0.0.0', port=port, debug=True)
-    else:
-        print(
-            "\n  ⛔  FLASK_ENV não é 'development'.\n"
-            "  Use um servidor WSGI para produção:\n"
-            "    Windows : .\\start_prod_local.ps1   (Waitress)\n"
-            "    OpenShift: gunicorn -c gunicorn.conf.py app:app\n"
-        )

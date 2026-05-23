@@ -6,13 +6,11 @@ Web application developed in Python (Flask) for batch conversion of `.reqifz` fi
 
 Note: Tests were successfully performed with reqifz files from RDNG 6.0.4.
 
-## Current Features (Version 2.0 beta)
+## Current Features (Version 2.2)
 
 - **Modern Web Interface**: Intuitive interface with drag-and-drop support for multiple files and a "glassmorphism" theme.
 - **Batch Conversion**: Process multiple `.reqifz` files simultaneously quickly and safely.
-- **Algorithm Selection**: Choose directly in the interface which rule engine to use:
-  - **v2 (Current Rules)**: More robust algorithm. Undoes severe invalid nesting (like tables inside paragraphs), handles images by converting base64 to physical files, and fixes dozens of tags not allowed by the ELM 7.2 specification.
-  - **v1 (Original Rules)**: Legacy algorithm that handles ID duplication, removal of `<button>` elements, and basic attribute cleanup.
+- **Advanced Algorithm**: Robust conversion algorithm that undoes severe invalid nesting (like tables inside paragraphs), handles images by converting base64 to physical files, fixes tags not allowed by the ELM 7.2 specification, handles ID duplication, and more.
 - **Logs Visualization**: Track the processing and possible warnings for each file in an embedded terminal on the screen.
 - **Consolidated Download**: Download the converted packages individually or all at once grouped in a single `.zip` file.
 
@@ -40,14 +38,14 @@ The application supports three execution modes. Choose based on your needs:
 
 | Mode | Command | Server | Use when… |
 |------|---------|--------|-----------|
-| **Development** | `python app.py` | Flask dev | Writing code — hot-reload, detailed errors |
-| **Local production** | `.\start_prod_local.ps1` | Waitress | Testing production behavior on Windows |
-| **OpenShift** | `gunicorn -c gunicorn.conf.py app:app` | Gunicorn | Deploying to the OpenShift cluster |
+| **Development** | `python wsgi.py` | Flask dev | Writing code — hot-reload, detailed errors |
+| **Local production** | `.\scripts\start_prod_local.ps1` | Waitress | Testing production behavior on Windows |
+| **OpenShift** | `gunicorn -c gunicorn.conf.py wsgi:app` | Gunicorn | Deploying to the OpenShift cluster |
 
 ### 1. Development (Windows)
 
 ```bash
-python app.py
+python wsgi.py
 ```
 
 Access in your browser: **http://localhost:5000**
@@ -59,10 +57,10 @@ The Flask dev server starts with `debug=True` and automatic hot-reload. **Never 
 To test production behavior locally before deploying to OpenShift:
 
 ```powershell
-.\start_prod_local.ps1
+.\scripts\start_prod_local.ps1
 ```
 
-Access in your browser: **http://localhost:8080**
+Access in your browser: **http://localhost:9080**
 
 This uses [Waitress](https://docs.pylonsproject.org/projects/waitress/) — a pure-Python WSGI server fully supported on Windows, with multi-threading and no debug mode.
 
@@ -71,7 +69,7 @@ This uses [Waitress](https://docs.pylonsproject.org/projects/waitress/) — a pu
 On OpenShift, the `Procfile` is detected automatically by the S2I build process:
 
 ```
-web: gunicorn -c gunicorn.conf.py app:app
+web: gunicorn -c gunicorn.conf.py wsgi:app
 ```
 
 Configuration is controlled via environment variables set in the OpenShift deployment:
@@ -79,7 +77,7 @@ Configuration is controlled via environment variables set in the OpenShift deplo
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `SECRET_KEY` | *(required)* | Cryptographic key — generate with `python -c "import secrets; print(secrets.token_hex(32))"` |
-| `PORT` | `8080` | Listening port (OpenShift default) |
+| `PORT` | `9080` | Listening port (OpenShift default is usually 8080) |
 | `WEB_CONCURRENCY` | `2×CPUs+1` | Number of Gunicorn worker processes |
 | `GUNICORN_THREADS` | `4` | Threads per worker |
 | `GUNICORN_TIMEOUT` | `600` | Request timeout in seconds |
@@ -94,7 +92,7 @@ cp .env.example .env
 
 > **Note:** The conversion script can still be executed via command line for use in automations:
 > ```bash
-> python reqifz_converter.py my_file.reqifz
+> python app/converter/reqifz_converter.py my_file.reqifz
 > ```
 
 

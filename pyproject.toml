@@ -1,6 +1,6 @@
 [project]
 name = "reqifz-converter"
-version = "2.1.1"
+version = "2.2"
 description = "Convert ReqIFZ files with advanced HTML cleanup and ReqIF validation"
 authors = [
     { name = "Carlos Portela", email = "[EMAIL_ADDRESS]" }

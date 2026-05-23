@@ -19,7 +19,7 @@ import multiprocessing
 # OpenShift expõe a aplicação na porta 8080 por padrão.
 # Em outros ambientes, defina a variável PORT conforme necessário.
 # ---------------------------------------------------------------------------
-_port = os.environ.get('PORT', '8080')
+_port = os.environ.get('PORT', '9080')
 bind = f'0.0.0.0:{_port}'
 
 # ---------------------------------------------------------------------------

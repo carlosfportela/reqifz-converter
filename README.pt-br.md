@@ -6,13 +6,11 @@ Aplicação Web desenvolvida em Python (Flask) para conversão em lote de arquiv
 
 Nota: Os testes foram realizados com sucesso com o arquivos reqifz do RDNG 6.0.4.
 
-## Recursos Atuais (Versão 2.0 beta)
+## Recursos Atuais (Versão 2.2)
 
 - **Interface Web Moderna**: Interface intuitiva com suporte a drag-and-drop para múltiplos arquivos e tema "glassmorphism".
 - **Conversão em Lote**: Processe vários arquivos `.reqifz` simultaneamente de forma rápida e segura.
-- **Seleção de Algoritmo**: Escolha diretamente na interface qual motor de regras usar:
-  - **v2 (Regras Atuais)**: Algoritmo mais robusto. Desfaz aninhamentos inválidos graves (como tabelas dentro de parágrafos), lida com imagens convertendo base64 para arquivos físicos e corrige dezenas de tags não permitidas pela especificação ELM 7.2.
-  - **v1 (Regras Originais)**: Algoritmo legado que trata duplicação de IDs, remoção de elementos `<button>` e limpeza de atributos básicos.
+- **Algoritmo Avançado**: Algoritmo de conversão robusto que desfaz aninhamentos inválidos graves (como tabelas dentro de parágrafos), lida com imagens convertendo base64 para arquivos físicos, corrige dezenas de tags não permitidas pela especificação ELM 7.2, trata duplicação de IDs e muito mais.
 - **Visualização de Logs**: Acompanhe o processamento e eventuais avisos de cada arquivo em um terminal embutido na tela.
 - **Download Consolidado**: Baixe os pacotes convertidos individualmente ou todos de uma vez agrupados em um único arquivo `.zip`.
 
@@ -34,19 +32,49 @@ A aplicação requer **Python 3.8+**.
    pip install -r requirements.txt
    ```
 
-## Como Executar
+## Modos de Execução
 
-Para iniciar a aplicação web, rode o comando:
+A aplicação suporta três modos de execução. Escolha com base nas suas necessidades:
+
+| Modo | Comando | Servidor | Use quando… |
+|------|---------|--------|-----------|
+| **Desenvolvimento** | `python wsgi.py` | Flask dev | Escrevendo código — hot-reload, erros detalhados |
+| **Produção local** | `.\scripts\start_prod_local.ps1` | Waitress | Testando o comportamento de produção no Windows |
+| **OpenShift** | `gunicorn -c gunicorn.conf.py wsgi:app` | Gunicorn | Fazendo deploy no cluster OpenShift |
+
+### 1. Desenvolvimento (Windows)
 
 ```bash
-python app.py
+python wsgi.py
 ```
 
 Acesse no seu navegador o endereço: **http://localhost:5000**
 
+O servidor de desenvolvimento do Flask inicia com `debug=True` e hot-reload automático. **Nunca use isso em produção.**
+
+### 2. Simulação de Produção Local (Windows)
+
+Para testar o comportamento de produção localmente antes de fazer o deploy no OpenShift:
+
+```powershell
+.\scripts\start_prod_local.ps1
+```
+
+Acesse no seu navegador: **http://localhost:9080**
+
+Isso usa o [Waitress](https://docs.pylonsproject.org/projects/waitress/) — um servidor WSGI em Python puro totalmente suportado no Windows, com multi-threading e sem modo de depuração.
+
+### 3. Produção — OpenShift
+
+No OpenShift, o `Procfile` é detectado automaticamente pelo processo de build S2I:
+
+```
+web: gunicorn -c gunicorn.conf.py wsgi:app
+```
+
 > **Nota:** O script de conversão continua podendo ser executado via linha de comando para uso em automações:
 > ```bash
-> python reqifz_converter.py meu_arquivo.reqifz
+> python app/converter/reqifz_converter.py meu_arquivo.reqifz
 > ```
 
 ## Incompatibilidades tratadas (Algoritmo v2)

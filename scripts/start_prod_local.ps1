@@ -14,11 +14,11 @@
 Write-Host ""
 Write-Host "  🚀  Modo: PRODUÇÃO LOCAL (Waitress)" -ForegroundColor Cyan
 Write-Host "  📍  Acesse: http://localhost:8080" -ForegroundColor Cyan
-Write-Host "  ℹ   Para desenvolvimento com hot-reload: python app.py" -ForegroundColor Yellow
+Write-Host "  ℹ   Para desenvolvimento com hot-reload: python wsgi.py" -ForegroundColor Yellow
 Write-Host ""
 
 # Carrega o .env se existir (variáveis de ambiente de desenvolvimento)
-$envFile = Join-Path $PSScriptRoot ".env"
+$envFile = Join-Path $PSScriptRoot "..\.env"
 if (Test-Path $envFile) {
     Write-Host "  📄  Carregando variáveis de: .env" -ForegroundColor DarkGray
     Get-Content $envFile | ForEach-Object {
@@ -32,6 +32,7 @@ if (Test-Path $envFile) {
 
 # Garante que não estará em modo debug
 $env:FLASK_ENV = "production"
+$env:PYTHONPATH = (Join-Path $PSScriptRoot "..")
 
 # Configurações do servidor
 $port    = if ($env:PORT) { $env:PORT } else { "8080" }
@@ -51,4 +52,4 @@ python -m waitress `
     --connection-limit=100 `
     --channel-timeout=600 `
     --ident="" `
-    app:app
+    wsgi:app
